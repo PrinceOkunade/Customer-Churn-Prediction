@@ -1,6 +1,7 @@
 # Customer Churn Prediction
 
 End-to-end ML pipeline predicting telecom customer churn with **XGBoost + SHAP explanations**, wrapped in a **Streamlit** web app.
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://customer-churn-prediction-pta8ejjyrq8ahuxaeuwzzb.streamlit.app/)
 
 ![Python](https://img.shields.io/badge/Python-3.13-blue)
 ![Streamlit](https://img.shields.io/badge/Streamlit-App-red)

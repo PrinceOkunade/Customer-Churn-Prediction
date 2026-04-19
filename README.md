@@ -9,11 +9,11 @@ End-to-end ML pipeline predicting telecom customer churn with **XGBoost + SHAP e
 
 ## Problem
 
-Customer churn costs subscription businesses far more than acquisition — retaining an existing customer is 5–7x cheaper than acquiring a new one. This project predicts, per customer, the probability of churn and explains each prediction with SHAP so that retention teams can take targeted action.
+Customer churn costs subscription businesses far more than acquisition, retaining an existing customer is 5–7x cheaper than acquiring a new one. This project predicts, per customer, the probability of churn and explains each prediction with SHAP so that retention teams can take targeted action.
 
 ## Dataset
 
-**IBM Telco Customer Churn** — 7,043 customers, 21 features.
+**IBM Telco Customer Churn** 7,043 customers, 21 features.
 
 Source: [Kaggle](https://www.kaggle.com/datasets/blastchar/telco-customer-churn)
 

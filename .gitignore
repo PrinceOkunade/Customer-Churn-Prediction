@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Helper scripts used to build the project (optional)
+build_notebook.py
+build_docs.py
+build_deploy_guide.py
+smoke_test.py
+

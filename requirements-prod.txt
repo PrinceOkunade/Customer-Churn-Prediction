@@ -1,0 +1,16 @@
+# Production-only dependencies for the FastAPI service.
+# Excludes Streamlit, plotting libs, and training-only packages — keeps
+# the Cloud Run image small and the cold start fast.
+
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.0.0
+
+pandas>=1.5.0
+numpy>=1.23.0
+scikit-learn>=1.2.0
+xgboost>=1.7.0
+shap>=0.42.0
+joblib>=1.2.0
+
+google-cloud-bigquery>=3.0.0

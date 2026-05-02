@@ -20,5 +20,9 @@ build_docs.py
 build_deploy_guide.py
 smoke_test.py
 
- # Word documents (personal use, not part of the project)
-  *.docx
+# Word documents (personal use, not part of the project)
+*.docx
+
+# GCP service-account keys — never commit
+*-key.json
+*-deployer-key.json

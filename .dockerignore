@@ -1,0 +1,36 @@
+.git
+.github
+.gitignore
+.dockerignore
+
+# Notebooks, data, training artefacts — not needed at inference time
+notebooks/
+data/
+images/
+*.ipynb
+
+# Heavy docs that bloat the image
+*.docx
+ML_Learnings_From_Project.docx
+Deployment_And_GitHub_Guide.docx
+Project_Presentation_Script.docx
+
+# Build / training scripts the API doesn't need
+build_notebook.py
+build_docs.py
+build_deploy_guide.py
+smoke_test.py
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Editors
+.vscode/
+.idea/
+
+# Streamlit-only bits — the API does not serve UI
+src/app.py

@@ -1,80 +1,65 @@
-"""Customer Churn Prediction — Streamlit App."""
-import os
-from pathlib import Path
+"""Customer Churn Prediction — Streamlit App (thin client).
 
-import joblib
-import numpy as np
-import pandas as pd
-import shap
+Calls the FastAPI service over HTTP — does not load the model itself.
+Default API URL is http://localhost:8000; override with the API_URL env var
+to point at a deployed Cloud Run service.
+
+Run:
+    # 1. start the API in another terminal
+    cd src && uvicorn api:app --reload --port 8000
+
+    # 2. start Streamlit
+    streamlit run src/app.py
+
+    # or, against Cloud Run:
+    set API_URL=https://churn-api-xxxx.a.run.app
+    streamlit run src/app.py
+"""
+import os
+
 import matplotlib.pyplot as plt
+import pandas as pd
+import requests
 import streamlit as st
+
+API_URL = os.getenv("API_URL", "http://localhost:8000")
+TIMEOUT_SECONDS = 10
 
 st.set_page_config(page_title="Customer Churn Predictor", page_icon="📊", layout="wide")
 
-MODELS_DIR = Path(__file__).resolve().parent.parent / "models"
-NUM_COLS = ["tenure", "MonthlyCharges", "TotalCharges"]
+
+def call_api(inputs: dict) -> dict:
+    """POST a customer profile to the /predict endpoint and return the JSON response."""
+    response = requests.post(
+        f"{API_URL}/predict",
+        json=inputs,
+        timeout=TIMEOUT_SECONDS,
+    )
+    response.raise_for_status()
+    return response.json()
 
 
-@st.cache_resource
-def load_artifacts():
-    model = joblib.load(MODELS_DIR / "churn_model.pkl")
-    scaler = joblib.load(MODELS_DIR / "scaler.pkl")
-    feature_names = joblib.load(MODELS_DIR / "feature_names.pkl")
-    explainer = shap.TreeExplainer(model)
-    return model, scaler, feature_names, explainer
+def render_shap_bars(shap_top: list[dict]) -> None:
+    """Horizontal bar chart of top-5 SHAP features (red=increases churn, blue=decreases)."""
+    features = [f["feature"] for f in shap_top]
+    values = [f["shap_value"] for f in shap_top]
+    colors = ["#d62728" if v > 0 else "#1f77b4" for v in values]
 
-
-def build_feature_vector(inputs: dict, scaler, feature_names):
-    """Map sidebar inputs -> one-hot encoded, scaled feature vector aligned to training columns."""
-    row = {
-        "gender": 1 if inputs["gender"] == "Male" else 0,
-        "SeniorCitizen": 1 if inputs["SeniorCitizen"] == "Yes" else 0,
-        "Partner": 1 if inputs["Partner"] == "Yes" else 0,
-        "Dependents": 1 if inputs["Dependents"] == "Yes" else 0,
-        "tenure": inputs["tenure"],
-        "PhoneService": 1 if inputs["PhoneService"] == "Yes" else 0,
-        "PaperlessBilling": 1 if inputs["PaperlessBilling"] == "Yes" else 0,
-        "MonthlyCharges": inputs["MonthlyCharges"],
-        "TotalCharges": inputs["TotalCharges"],
-    }
-
-    # One-hot (drop_first=True) — dummy columns named <col>_<value>
-    one_hot_fields = {
-        "MultipleLines": inputs["MultipleLines"],
-        "InternetService": inputs["InternetService"],
-        "OnlineSecurity": inputs["OnlineSecurity"],
-        "OnlineBackup": inputs["OnlineBackup"],
-        "DeviceProtection": inputs["DeviceProtection"],
-        "TechSupport": inputs["TechSupport"],
-        "StreamingTV": inputs["StreamingTV"],
-        "StreamingMovies": inputs["StreamingMovies"],
-        "Contract": inputs["Contract"],
-        "PaymentMethod": inputs["PaymentMethod"],
-    }
-    for col, val in one_hot_fields.items():
-        row[f"{col}_{val}"] = 1
-
-    input_df = pd.DataFrame([row])
-    input_df = input_df.reindex(columns=feature_names, fill_value=0)
-    input_df[NUM_COLS] = scaler.transform(input_df[NUM_COLS])
-    return input_df
+    fig, ax = plt.subplots(figsize=(8, 3.5))
+    ax.barh(features[::-1], values[::-1], color=colors[::-1])
+    ax.axvline(0, color="black", linewidth=0.6)
+    ax.set_xlabel("SHAP value (impact on churn probability)")
+    ax.set_title("Top 5 features driving this prediction")
+    plt.tight_layout()
+    st.pyplot(fig, clear_figure=True)
 
 
 def main():
     st.title("Customer Churn Prediction")
     st.markdown(
-        "Predict telecom customer churn using a tuned **XGBoost** model, "
-        "with **SHAP** explanations for every prediction."
+        f"Predict telecom customer churn via the deployed **XGBoost + SHAP** API. "
+        f"_API endpoint: `{API_URL}`_"
     )
-
-    try:
-        model, scaler, feature_names, explainer = load_artifacts()
-    except FileNotFoundError:
-        st.error(
-            "Model files not found. Please run `notebooks/churn_prediction.ipynb` "
-            "first to generate `churn_model.pkl`, `scaler.pkl`, and `feature_names.pkl`."
-        )
-        return
 
     # ---------- Sidebar ----------
     st.sidebar.header("Customer Profile")
@@ -112,7 +97,7 @@ def main():
         ["Electronic check", "Mailed check", "Bank transfer (automatic)", "Credit card (automatic)"],
     )
 
-    predict = st.sidebar.button("Predict Churn", type="primary", use_container_width=True)
+    predict_btn = st.sidebar.button("Predict Churn", type="primary", use_container_width=True)
 
     inputs = {
         "gender": gender, "SeniorCitizen": senior, "Partner": partner,
@@ -125,45 +110,32 @@ def main():
         "PaymentMethod": payment, "MonthlyCharges": monthly, "TotalCharges": total,
     }
 
-    if not predict:
+    if not predict_btn:
         st.info("Enter a customer profile in the sidebar and click **Predict Churn**.")
         return
 
-    X_input = build_feature_vector(inputs, scaler, feature_names)
-    proba = float(model.predict_proba(X_input)[0, 1])
-    pred = int(proba >= 0.5)
-
-    if proba < 0.30:
-        risk = "LOW"
-    elif proba < 0.60:
-        risk = "MEDIUM"
-    else:
-        risk = "HIGH"
+    try:
+        result = call_api(inputs)
+    except requests.exceptions.ConnectionError:
+        st.error(
+            f"Could not reach the API at `{API_URL}`. "
+            "Start the FastAPI service first (`cd src && uvicorn api:app --reload`) "
+            "or set the `API_URL` env var to a deployed endpoint."
+        )
+        return
+    except requests.exceptions.HTTPError as exc:
+        st.error(f"API returned {exc.response.status_code}: {exc.response.text}")
+        return
 
     c1, c2, c3 = st.columns(3)
-    c1.metric("Churn Prediction", "Yes" if pred == 1 else "No")
-    c2.metric("Churn Probability", f"{proba*100:.1f}%")
-    c3.metric("Risk Level", risk)
+    c1.metric("Churn Prediction", "Yes" if result["churn_prediction"] == 1 else "No")
+    c2.metric("Churn Probability", f"{result['churn_probability']*100:.1f}%")
+    c3.metric("Risk Level", result["risk_level"])
 
     st.divider()
 
     st.subheader("Why this prediction?")
-    shap_vals = explainer.shap_values(X_input)
-    base = explainer.expected_value
-    if isinstance(base, (list, np.ndarray)):
-        base = float(np.array(base).flatten()[0])
-
-    explanation = shap.Explanation(
-        values=shap_vals[0],
-        base_values=base,
-        data=X_input.iloc[0].values,
-        feature_names=list(X_input.columns),
-    )
-
-    fig = plt.figure()
-    shap.plots.waterfall(explanation, max_display=10, show=False)
-    st.pyplot(fig, clear_figure=True)
-
+    render_shap_bars(result["shap_top_features"])
     st.markdown(
         "**Red bars** push the prediction toward **churn**; "
         "**blue bars** push it toward **retention**."
@@ -175,7 +147,7 @@ def main():
     summary = pd.DataFrame({"Field": list(inputs.keys()), "Value": list(inputs.values())})
     st.dataframe(summary, use_container_width=True, hide_index=True)
 
-    st.caption("Built with XGBoost · SHAP · Streamlit")
+    st.caption(f"Powered by FastAPI on Cloud Run · XGBoost · SHAP · API: {API_URL}")
 
 
 if __name__ == "__main__":

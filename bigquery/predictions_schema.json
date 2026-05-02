@@ -1,0 +1,44 @@
+[
+  {
+    "name": "request_id",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "UUID for this prediction request."
+  },
+  {
+    "name": "timestamp",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED",
+    "description": "Server-side UTC time when the prediction was logged."
+  },
+  {
+    "name": "inputs",
+    "type": "JSON",
+    "mode": "NULLABLE",
+    "description": "Raw customer profile JSON sent to /predict."
+  },
+  {
+    "name": "churn_probability",
+    "type": "FLOAT64",
+    "mode": "REQUIRED",
+    "description": "Model's predicted probability of churn (0-1)."
+  },
+  {
+    "name": "churn_prediction",
+    "type": "INT64",
+    "mode": "REQUIRED",
+    "description": "Binary prediction: 0 = retain, 1 = churn (threshold 0.5)."
+  },
+  {
+    "name": "risk_level",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Risk band: LOW (<0.30), MEDIUM (0.30-0.60), HIGH (>=0.60)."
+  },
+  {
+    "name": "model_version",
+    "type": "STRING",
+    "mode": "REQUIRED",
+    "description": "Identifier for the model that produced this prediction."
+  }
+]

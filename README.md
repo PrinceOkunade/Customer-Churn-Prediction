@@ -70,6 +70,27 @@ flowchart LR
 | F1      | 0.5914 |
 | Accuracy | 0.7637 |
 
+### Ranking quality — does the risk list actually work?
+
+Accuracy alone doesn't tell a retention team whether the call list is worth
+working. What matters is: *if I contact the highest-risk customers first, how
+many actually churn?* Measured on the held-out test set (1,409 customers, 26.5%
+base churn rate) via `evaluation/rank_metrics.py`:
+
+| Contacted (highest-risk first) | Precision | Churners captured | Lift vs random |
+|---|---|---|---|
+| Top 5%  | 71.4% | 13.4% | 2.69× |
+| Top 10% | 67.4% | 25.4% | 2.54× |
+| Top 20% | 62.1% | 46.8% | 2.34× |
+| Top 30% | 55.3% | 62.6% | 2.08× |
+
+So working the top 10% of the base means **~2 in 3 contacted customers are real
+churners** — a **2.5× lift** over untargeted outreach — and the top 30% captures
+**63% of all churners**. That is what turns the model into a prioritised call
+list rather than a number.
+
+![](images/lift_curve.png)
+
 ### Key EDA insights
 
 - **27%** of customers churned — class imbalance handled with SMOTE on the training fold only.

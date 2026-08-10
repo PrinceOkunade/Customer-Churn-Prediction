@@ -4,7 +4,7 @@ End-to-end ML system: a tuned **XGBoost** churn classifier (ROC-AUC 0.81) served
 
 ## Live Demo
 
-- **Swagger UI** (try the API in your browser): https://churn-api-968675945252.europe-west2.run.app/docs
+
 - **Streamlit frontend**: https://customer-churn-prediction-pta8ejjyrq8ahuxaeuwzzb.streamlit.app/
 
 [![Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://customer-churn-prediction-pta8ejjyrq8ahuxaeuwzzb.streamlit.app/)

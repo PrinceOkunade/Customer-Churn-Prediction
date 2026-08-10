@@ -16,7 +16,7 @@ End-to-end ML system: a tuned **XGBoost** churn classifier (ROC-AUC 0.81) served
 
 ## Why this matters
 
-Retaining an existing customer is **5–7× cheaper** than acquiring a new one. On a 7,000-customer base with a 27% churn rate, this system surfaces the ~1,900 highest-risk customers and explains *why* each one is at risk — turning a vague "we're losing customers" problem into a prioritised, defensible call list for the retention team.
+Retaining an existing customer is **5–7× cheaper** than acquiring a new one. On a 7,000-customer base with a 27% churn rate, this system surfaces the ~1,900 highest-risk customers and explains *why* each one is at risk, turning a vague "we're losing customers" problem into a prioritised, defensible call list for the retention team.
 
 ## Architecture
 
@@ -49,7 +49,7 @@ flowchart LR
 
 ## Dataset
 
-**IBM Telco Customer Churn** — 7,043 customers, 21 features, ~27% churn rate. Source: [Kaggle](https://www.kaggle.com/datasets/blastchar/telco-customer-churn).
+**IBM Telco Customer Churn** : 7,043 customers, 21 features, ~27% churn rate. Source: [Kaggle](https://www.kaggle.com/datasets/blastchar/telco-customer-churn).
 
 ## Pipeline
 
@@ -85,7 +85,7 @@ base churn rate) via `evaluation/rank_metrics.py`:
 | Top 30% | 55.3% | 62.6% | 2.08× |
 
 So working the top 10% of the base means **~2 in 3 contacted customers are real
-churners** — a **2.5× lift** over untargeted outreach — and the top 30% captures
+churners**, a **2.5× lift** over untargeted outreach and the top 30% captures
 **63% of all churners**. That is what turns the model into a prioritised call
 list rather than a number.
 
@@ -93,7 +93,7 @@ list rather than a number.
 
 ### Key EDA insights
 
-- **27%** of customers churned — class imbalance handled with SMOTE on the training fold only.
+- **27%** of customers churned; class imbalance handled with SMOTE on the training fold only.
 - **Month-to-month** contracts churn at ~43% vs under 3% for two-year contracts.
 - Customers without TechSupport, OnlineSecurity, or OnlineBackup churn at materially higher rates.
 - Most churners leave within the first few months of tenure.
